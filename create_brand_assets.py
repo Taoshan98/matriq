@@ -1,0 +1,95 @@
+import re
+
+# 1. Favicon SVG (compact 32x32 / 64x64)
+favicon_svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="fav-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e1b4b" />
+    </linearGradient>
+    <linearGradient id="fav-spark" x1="40" y1="40" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <filter id="glow" x="32" y="32" width="28" height="28" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#fav-bg)" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="2" />
+
+  <!-- 3x3 Matrix Grid -->
+  <!-- Row 1 -->
+  <circle cx="20" cy="20" r="4.5" fill="#64748b" />
+  <circle cx="32" cy="20" r="4.5" fill="#818cf8" />
+  <circle cx="44" cy="20" r="4.5" fill="#64748b" />
+
+  <!-- Row 2 -->
+  <circle cx="20" cy="32" r="4.5" fill="#818cf8" />
+  <circle cx="32" cy="32" r="4.5" fill="#c084fc" />
+  <circle cx="44" cy="32" r="4.5" fill="#818cf8" />
+
+  <!-- Row 3 -->
+  <circle cx="20" cy="44" r="4.5" fill="#64748b" />
+  <circle cx="32" cy="44" r="4.5" fill="#818cf8" />
+
+  <!-- 9th Target Spark (The Insight / Solution) -->
+  <path d="M 44,37 L 46,42 L 51,44 L 46,46 L 44,51 L 42,46 L 37,44 L 42,42 Z" fill="url(#fav-spark)" filter="url(#glow)" />
+</svg>'''
+
+import os
+
+DIR = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(DIR, "favicon.svg"), "w", encoding="utf-8") as f:
+    f.write(favicon_svg)
+
+print("Created favicon.svg successfully.")
+
+# 2. Full Horizontal Brand Logo SVG (Icon + Typography)
+full_logo_svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" fill="none">
+  <defs>
+    <linearGradient id="logo-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e1b4b" />
+    </linearGradient>
+    <linearGradient id="logo-spark" x1="40" y1="40" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <linearGradient id="text-grad" x1="76" y1="36" x2="160" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <filter id="logo-glow" x="32" y="32" width="28" height="28" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Icon Mark -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#logo-bg)" stroke="#38bdf8" stroke-opacity="0.35" stroke-width="2" />
+  
+  <circle cx="20" cy="20" r="4.5" fill="#64748b" />
+  <circle cx="32" cy="20" r="4.5" fill="#818cf8" />
+  <circle cx="44" cy="20" r="4.5" fill="#64748b" />
+
+  <circle cx="20" cy="32" r="4.5" fill="#818cf8" />
+  <circle cx="32" cy="32" r="4.5" fill="#c084fc" />
+  <circle cx="44" cy="32" r="4.5" fill="#818cf8" />
+
+  <circle cx="20" cy="44" r="4.5" fill="#64748b" />
+  <circle cx="32" cy="44" r="4.5" fill="#818cf8" />
+
+  <path d="M 44,37 L 46,42 L 51,44 L 46,46 L 44,51 L 42,46 L 37,44 L 42,42 Z" fill="url(#logo-spark)" filter="url(#logo-glow)" />
+
+  <!-- Typography: MatriQ -->
+  <text x="76" y="42" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="32" font-weight="900" letter-spacing="-0.03em" fill="url(#text-grad)">Matri<tspan fill="#38bdf8">Q</tspan></text>
+  <text x="77" y="55" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="9" font-weight="700" letter-spacing="0.16em" text-transform="uppercase" fill="#94a3b8">CULTURE-FAIR IQ</text>
+</svg>'''
+
+with open(os.path.join(DIR, "logo.svg"), "w", encoding="utf-8") as f:
+    f.write(full_logo_svg)
+
+print("Created logo.svg successfully.")
