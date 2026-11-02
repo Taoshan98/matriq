@@ -2,7 +2,7 @@
 """
 MatriQ Modular Build Pipeline
 Compiles mathematical item definitions, encrypted solution payloads, and multilingual
-localization dictionaries into modular assets (js/data.js, js/i18n.js), and generates
+localization dictionaries into modular assets (assets/js/data.js, assets/js/i18n.js), and generates
 the lightweight distribution runtime: index.html
 """
 
@@ -25,7 +25,7 @@ def build():
     
     # 1. Compile items & obfuscated solutions dataset
     items_json, encoded_solutions = prepare_dataset(items, EXPLANATIONS)
-    data_js_path = ROOT_DIR / "js" / "data.js"
+    data_js_path = ROOT_DIR / "assets" / "js" / "data.js"
     data_js_content = (
         "/**\n"
         " * MatriQ Dataset & Obfuscated Solutions\n"
@@ -37,11 +37,11 @@ def build():
     data_js_path.parent.mkdir(parents=True, exist_ok=True)
     with open(data_js_path, "w", encoding="utf-8") as f:
         f.write(data_js_content)
-    print(f"  [+] js/data.js ({os.path.getsize(data_js_path):,} bytes)")
+    print(f"  [+] assets/js/data.js ({os.path.getsize(data_js_path):,} bytes)")
 
     # 2. Compile multilingual localization dictionaries
     translations_json = json.dumps(TRANSLATIONS, ensure_ascii=False, indent=2)
-    i18n_js_path = ROOT_DIR / "js" / "i18n.js"
+    i18n_js_path = ROOT_DIR / "assets" / "js" / "i18n.js"
     i18n_js_content = (
         "/**\n"
         " * MatriQ Multilingual Localization Dictionaries\n"
@@ -49,9 +49,10 @@ def build():
         " */\n"
         f"const I18N = {translations_json};\n"
     )
+    i18n_js_path.parent.mkdir(parents=True, exist_ok=True)
     with open(i18n_js_path, "w", encoding="utf-8") as f:
         f.write(i18n_js_content)
-    print(f"  [+] js/i18n.js ({os.path.getsize(i18n_js_path):,} bytes)")
+    print(f"  [+] assets/js/i18n.js ({os.path.getsize(i18n_js_path):,} bytes)")
 
     # 3. Assemble root index.html from modular template
     template_path = ROOT_DIR / "src" / "templates" / "index.template.html"

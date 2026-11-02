@@ -89,15 +89,16 @@ To ensure construct validity and testing integrity:
 ```
 matriq/
 ├── assets/
-│   ├── favicon.svg            # Scalable vector favicon
-│   └── logo.svg               # Full horizontal brand vector mark
-├── css/
-│   └── style.css              # Modular CSS stylesheet (dual themes, print layout)
-├── js/
-│   ├── app.js                 # Test controller, DOM rendering & keyboard navigation
-│   ├── scoring.js             # Psychometric Wechsler scoring & normal CDF algorithm
-│   ├── data.js                # Compiled matrix SVG definitions & encrypted solutions
-│   └── i18n.js                # Compiled multilingual dictionaries (6 languages)
+│   ├── brand/
+│   │   ├── favicon.svg        # Scalable vector favicon
+│   │   └── logo.svg           # Full horizontal brand vector mark
+│   ├── css/
+│   │   └── style.css          # Modular CSS stylesheet (dual themes, print layout)
+│   └── js/
+│       ├── app.js             # Test controller, DOM rendering & keyboard navigation
+│       ├── scoring.js         # Psychometric Wechsler scoring & normal CDF algorithm
+│       ├── data.js            # Compiled matrix SVG definitions & encrypted solutions
+│       └── i18n.js            # Compiled multilingual dictionaries (6 languages)
 ├── src/
 │   ├── generator/
 │   │   ├── primitives.py      # SVG vector primitives & renderers
