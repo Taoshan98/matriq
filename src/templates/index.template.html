@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MatriQ — Test di Intelligenza a Matrici Progressive</title>
+    <meta name="description" content="Culture-fair Progressive Matrices IQ Assessment based on fluid intelligence and standardized psychometrics.">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <a href="#main-content" class="skip-link">Passa al contenuto principale</a>
+    <div id="sr-announcer" class="sr-only" aria-live="polite"></div>
+
+    <!-- Header -->
+    <header role="banner">
+        <div class="brand" aria-label="MatriQ Home">
+            <div class="brand-logo-icon">
+                <svg viewBox="0 0 64 64" width="28" height="28" fill="none">
+                    <rect x="2" y="2" width="60" height="60" rx="16" fill="#0f172a" stroke="#38bdf8" stroke-opacity="0.4" stroke-width="2" />
+                    <circle cx="20" cy="20" r="4.5" fill="#64748b" />
+                    <circle cx="32" cy="20" r="4.5" fill="#818cf8" />
+                    <circle cx="44" cy="20" r="4.5" fill="#64748b" />
+                    <circle cx="20" cy="32" r="4.5" fill="#818cf8" />
+                    <circle cx="32" cy="32" r="4.5" fill="#c084fc" />
+                    <circle cx="44" cy="32" r="4.5" fill="#818cf8" />
+                    <circle cx="20" cy="44" r="4.5" fill="#64748b" />
+                    <circle cx="32" cy="44" r="4.5" fill="#818cf8" />
+                    <path d="M 44,37 L 46,42 L 51,44 L 46,46 L 44,51 L 42,46 L 37,44 L 42,42 Z" fill="#38bdf8" />
+                </svg>
+            </div>
+            <span class="brand-title" id="txt-brand-title">Matri<span style="color: var(--accent-cyan);">Q</span></span>
+            <span class="brand-badge" id="txt-brand-badge">CULTURE-FAIR IQ</span>
+        </div>
+
+        <div class="header-meta" id="header-meta" style="display: none;">
+            <div class="progress-pill" id="progress-indicator">Domanda 1 di 30</div>
+            <div class="timer-badge" id="timer-display" aria-label="Tempo rimanente">35:00</div>
+            <button class="btn-secondary" id="open-map-btn" style="padding: 0.3rem 0.65rem; font-size: 0.82rem;">
+                Mappa Quesiti
+            </button>
+        </div>
+
+        <div class="header-actions">
+            <!-- Language Selector -->
+            <select class="lang-select" id="lang-select" aria-label="Seleziona Lingua">
+                <option value="it">🇮🇹 Italiano</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="pt">🇧🇷 Português</option>
+                <option value="fr">🇫🇷 Français</option>
+            </select>
+
+            <!-- Theme Toggle -->
+            <button class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Cambia tema chiaro/scuro">
+                <span id="theme-icon">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="container" id="main-content" role="main">
+
+        <!-- Screen 1: Introduction -->
+        <section class="intro-card" id="intro-screen">
+            <h1 class="intro-title" id="txt-intro-title">Test di Intelligenza a Matrici Progressive</h1>
+            <p class="intro-desc" id="txt-intro-desc">
+                Questo test misura l'<strong>Intelligenza Fluida</strong> (il fattore generale <em>g</em> di Spearman) attraverso 30 problemi di logica visuo-spaziale a difficoltà progressiva. È indipendente dal linguaggio, dall'istruzione scolastica e dal background culturale.
+            </p>
+            <ul class="instructions-list">
+                <li>
+                    <span class="bullet" aria-hidden="true">1</span>
+                    <span><strong id="txt-rule-1-title">Struttura:</strong> <span id="txt-rule-1-desc">Ogni quesito presenta una griglia 3x3 di figure con una casella mancante contrassegnata da <strong>?</strong> in basso a destra.</span></span>
+                </li>
+                <li>
+                    <span class="bullet" aria-hidden="true">2</span>
+                    <span><strong id="txt-rule-2-title">Obiettivo:</strong> <span id="txt-rule-2-desc">Identificare la regola logica (orizzontale, verticale o combinata) e selezionare la figura corretta tra le opzioni sottostanti.</span></span>
+                </li>
+                <li>
+                    <span class="bullet" aria-hidden="true">3</span>
+                    <span><strong id="txt-rule-3-title">Tempo limite:</strong> <span id="txt-rule-3-desc"><strong>35 minuti</strong> per tutti i 30 quesiti (~70 secondi per domanda). Il timer si avvia cliccando sul pulsante sottostante.</span></span>
+                </li>
+                <li>
+                    <span class="bullet" aria-hidden="true">4</span>
+                    <span><strong id="txt-rule-4-title">Accessibilità & Scorciatoie:</strong> <span id="txt-rule-4-desc">Usa le <strong>Frecce</strong> per navigare, i tasti <strong>1-8</strong> o <strong>A-H</strong> per selezionare, e <strong>Spazio</strong> per contrassegnare i dubbi.</span></span>
+                </li>
+            </ul>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button class="btn-primary" id="start-btn">Inizia la Valutazione &rarr;</button>
+            </div>
+        </section>
+
+        <!-- Screen 2: Active Test (Split Zero-Scroll Workspace) -->
+        <section id="test-screen">
+            <div class="matrix-meta-bar">
+                <span class="category-tag" id="q-category">Progressione Quantitativa</span>
+                <button class="flag-btn" id="flag-btn" aria-pressed="false">
+                    <span aria-hidden="true">&#9873;</span> <span id="txt-flag-label">Segna per dopo</span>
+                </button>
+            </div>
+
+            <!-- Two-column split: Left = Stimulus, Right = Response -->
+            <div class="test-workspace">
+                <div class="test-stimulus-pane">
+                    <div class="matrix-container">
+                        <div class="matrix-grid" id="matrix-grid" role="region" aria-label="Matrice logica 3x3 del quesito">
+                            <!-- 9 cells rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="test-response-pane">
+                    <div class="options-section">
+                        <div class="options-title" id="txt-missing-figure-title">Seleziona la figura mancante per completare la logica:</div>
+                        <div class="options-grid" id="options-grid" role="radiogroup" aria-label="Opzioni di risposta">
+                            <!-- Options rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Controls integrated directly below options -->
+                    <div class="controls-bar">
+                        <div class="nav-buttons">
+                            <button class="btn-secondary" id="prev-btn">&larr; Precedente</button>
+                            <button class="btn-secondary" id="next-btn">Successiva &rarr;</button>
+                        </div>
+                        <button class="btn-primary" id="submit-btn" style="padding: 0.55rem 1.15rem; font-size: 0.88rem;">
+                            Consegna Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 3: Results -->
+        <section id="results-screen">
+            <div class="result-hero">
+                <div class="hero-glow"></div>
+                <div style="font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);" id="txt-res-hero-title">Quoziente Intellettivo Stimato</div>
+                <div class="iq-badge" id="res-iq" aria-label="QI calcolato">125</div>
+                <div class="iq-ci" id="res-ci">Intervallo di Confidenza al 95%: [119 - 131]</div>
+                <div class="iq-classification" id="res-classification">Superiore / Alto Potenziale</div>
+                <div class="percentile-rank" id="res-percentile">95.2° percentile</div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-val" id="res-raw-score">25 / 30</div>
+                        <div class="stat-label" id="txt-res-raw-score">Punteggio Grezzo</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-val" id="res-time-spent">21:40</div>
+                        <div class="stat-label" id="txt-res-time-spent">Tempo Impiegato</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-val" id="res-avg-time">43s</div>
+                        <div class="stat-label" id="txt-res-avg-time">Tempo Medio / Item</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons: PDF & Home -->
+            <div class="results-actions-bar">
+                <button class="btn-primary" id="export-pdf-btn">
+                    <span>&#128424;</span> <span id="txt-export-pdf-btn">Esporta Report in PDF</span>
+                </button>
+                <button class="btn-secondary" id="home-btn">
+                    <span>&#8634;</span> <span id="txt-home-btn">Torna alla Home / Ricomincia</span>
+                </button>
+            </div>
+
+            <!-- Breakdown -->
+            <div class="breakdown-card">
+                <div class="breakdown-title" id="txt-breakdown-title">Profilo Cognitivo per Categorie di Ragionamento</div>
+                <div id="categories-breakdown">
+                    <!-- Category bars -->
+                </div>
+            </div>
+
+            <!-- Review Button & Panel -->
+            <div class="review-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="font-size: 1.1rem; font-weight: 700;" id="txt-review-panel-title">Revisione Dettagliata & Soluzioni</div>
+                    <button class="btn-secondary" id="start-review-btn">Apri Spiegazioni Passo-Passo</button>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;" id="txt-review-panel-desc">
+                    Visualizza per ciascun quesito la regola logica esatta (orizzontale, verticale e insiemistica) e l'analisi degli errori delle altre opzioni.
+                </p>
+                <div id="review-container" style="display: none; margin-top: 1.25rem;">
+                    <!-- Interactive review pills -->
+                    <div style="display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 0.65rem; margin-bottom: 0.85rem;" id="review-pills"></div>
+                    <div id="review-content"></div>
+                </div>
+            </div>
+
+            <div class="print-footer-notice">
+                Report psicométrico generato automaticamente &bull; Valutazione Matrici Progressive Culture-Fair &bull; Basato su scala standard Wechsler (&mu;=100, &sigma;=15)
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Question Map Modal -->
+    <div class="modal-overlay" id="map-modal" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 700;" id="map-modal-title">Mappa dei 30 Quesiti</h3>
+                <button id="close-map-btn" style="background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer;" aria-label="Chiudi finestra mappa">&times;</button>
+            </div>
+            <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                <span style="display: flex; align-items: center; gap: 0.3rem;"><span style="width: 10px; height: 10px; background: rgba(56, 189, 248, 0.4); border-radius: 2px;"></span> <span id="txt-map-answered">Risposto</span></span>
+                <span style="display: flex; align-items: center; gap: 0.3rem;"><span style="width: 10px; height: 10px; background: rgba(245, 158, 11, 0.4); border-radius: 2px;"></span> <span id="txt-map-flagged">Segnato</span></span>
+                <span style="display: flex; align-items: center; gap: 0.3rem;"><span style="width: 10px; height: 10px; background: var(--bg-cell); border: 1px solid var(--border-color); border-radius: 2px;"></span> <span id="txt-map-unanswered">Non risposto</span></span>
+            </div>
+            <div class="question-map-grid" id="question-map-grid"></div>
+            <button class="btn-primary" id="confirm-map-btn" style="width: 100%; justify-content: center;">Chiudi</button>
+        </div>
+    </div>
+
+    <!-- Confirm Submit Modal -->
+    <div class="modal-overlay" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-card">
+            <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem;" id="confirm-modal-title">Conferma Consegna Test</h3>
+            <p id="confirm-modal-text" style="color: var(--text-muted); line-height: 1.5; margin-bottom: 1.5rem;">
+                Sei sicuro di voler terminare il test e calcolare il tuo Quoziente Intellettivo?
+            </p>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button class="btn-secondary" id="cancel-submit-btn">Torna al Test</button>
+                <button class="btn-primary" id="proceed-submit-btn">Conferma & Calcola</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modular Scripts (Zero external dependencies, 100% offline & file:// compatible) -->
+    <script src="js/data.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/scoring.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
