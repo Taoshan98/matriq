@@ -932,7 +932,7 @@
                     <path d="M 44,37 L 46,42 L 51,44 L 46,46 L 44,51 L 42,46 L 37,44 L 42,42 Z" fill="#38bdf8" />
                 </svg>
             </div>
-            <span class="brand-title">Matri<span style="color: var(--accent-cyan);">Q</span></span>
+            <span class="brand-title" id="txt-brand-title">Matri<span style="color: var(--accent-cyan);">Q</span></span>
             <span class="brand-badge" id="txt-brand-badge">CULTURE-FAIR IQ</span>
         </div>
 
@@ -1235,53 +1235,62 @@
             localStorage.setItem('matrix_iq_lang', lang);
 
             const t = I18N[lang];
-            // Update static strings
-            document.getElementById('txt-brand-title').textContent = t.brand_title;
-            document.getElementById('txt-brand-badge').textContent = t.brand_badge;
-            document.getElementById('txt-intro-title').textContent = t.intro_title;
-            document.getElementById('txt-intro-desc').innerHTML = t.intro_desc;
+            const setTxt = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+            const setHtml = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = val;
+            };
 
-            document.getElementById('txt-rule-1-title').textContent = t.rule_1_title;
-            document.getElementById('txt-rule-1-desc').innerHTML = t.rule_1_desc;
-            document.getElementById('txt-rule-2-title').textContent = t.rule_2_title;
-            document.getElementById('txt-rule-2-desc').innerHTML = t.rule_2_desc;
-            document.getElementById('txt-rule-3-title').textContent = t.rule_3_title;
-            document.getElementById('txt-rule-3-desc').innerHTML = t.rule_3_desc;
-            document.getElementById('txt-rule-4-title').textContent = t.rule_4_title;
-            document.getElementById('txt-rule-4-desc').innerHTML = t.rule_4_desc;
-            document.getElementById('start-btn').textContent = t.start_btn;
+            // Update static strings safely
+            setHtml('txt-brand-title', 'Matri<span style="color: var(--accent-cyan);">Q</span>');
+            setTxt('txt-brand-badge', t.brand_badge);
+            setTxt('txt-intro-title', t.intro_title);
+            setHtml('txt-intro-desc', t.intro_desc);
 
-            document.getElementById('txt-missing-figure-title').textContent = t.missing_figure_title;
-            prevBtn.textContent = t.prev_btn;
-            submitBtn.textContent = t.submit_btn;
-            openMapBtn.textContent = t.map_btn;
+            setTxt('txt-rule-1-title', t.rule_1_title);
+            setHtml('txt-rule-1-desc', t.rule_1_desc);
+            setTxt('txt-rule-2-title', t.rule_2_title);
+            setHtml('txt-rule-2-desc', t.rule_2_desc);
+            setTxt('txt-rule-3-title', t.rule_3_title);
+            setHtml('txt-rule-3-desc', t.rule_3_desc);
+            setTxt('txt-rule-4-title', t.rule_4_title);
+            setHtml('txt-rule-4-desc', t.rule_4_desc);
+            setTxt('start-btn', t.start_btn);
 
-            document.getElementById('map-modal-title').textContent = t.map_title;
-            document.getElementById('txt-map-answered').textContent = t.map_answered;
-            document.getElementById('txt-map-flagged').textContent = t.map_flagged;
-            document.getElementById('txt-map-unanswered').textContent = t.map_unanswered;
-            confirmMapBtn.textContent = t.close_btn;
+            setTxt('txt-missing-figure-title', t.missing_figure_title);
+            if (prevBtn) prevBtn.textContent = t.prev_btn;
+            if (submitBtn) submitBtn.textContent = t.submit_btn;
+            if (openMapBtn) openMapBtn.textContent = t.map_btn;
 
-            document.getElementById('confirm-modal-title').textContent = t.confirm_title;
-            cancelSubmitBtn.textContent = t.cancel_btn;
-            proceedSubmitBtn.textContent = t.proceed_btn;
+            setTxt('map-modal-title', t.map_title);
+            setTxt('txt-map-answered', t.map_answered);
+            setTxt('txt-map-flagged', t.map_flagged);
+            setTxt('txt-map-unanswered', t.map_unanswered);
+            if (confirmMapBtn) confirmMapBtn.textContent = t.close_btn;
 
-            document.getElementById('txt-res-hero-title').textContent = t.res_hero_title;
-            document.getElementById('txt-res-raw-score').textContent = t.res_raw_score;
-            document.getElementById('txt-res-time-spent').textContent = t.res_time_spent;
-            document.getElementById('txt-res-avg-time').textContent = t.res_avg_time;
-            document.getElementById('txt-breakdown-title').textContent = t.breakdown_title;
+            setTxt('confirm-modal-title', t.confirm_title);
+            if (cancelSubmitBtn) cancelSubmitBtn.textContent = t.cancel_btn;
+            if (proceedSubmitBtn) proceedSubmitBtn.textContent = t.proceed_btn;
 
-            document.getElementById('txt-export-pdf-btn').textContent = t.export_pdf_btn;
-            document.getElementById('txt-home-btn').textContent = t.home_btn;
-            document.getElementById('txt-review-panel-title').textContent = t.review_panel_title;
-            document.getElementById('txt-review-panel-desc').textContent = t.review_panel_desc;
-            document.getElementById('start-review-btn').textContent = t.open_review_btn;
+            setTxt('txt-res-hero-title', t.res_hero_title);
+            setTxt('txt-res-raw-score', t.res_raw_score);
+            setTxt('txt-res-time-spent', t.res_time_spent);
+            setTxt('txt-res-avg-time', t.res_avg_time);
+            setTxt('txt-breakdown-title', t.breakdown_title);
+
+            setTxt('txt-export-pdf-btn', t.export_pdf_btn);
+            setTxt('txt-home-btn', t.home_btn);
+            setTxt('txt-review-panel-title', t.review_panel_title);
+            setTxt('txt-review-panel-desc', t.review_panel_desc);
+            setTxt('start-review-btn', t.open_review_btn);
 
             // Re-render current question if in test
-            if (testScreen.style.display === 'flex') {
+            if (testScreen && testScreen.style.display === 'flex') {
                 renderQuestion(currentIndex);
-            } else if (resultsScreen.style.display === 'flex') {
+            } else if (resultsScreen && resultsScreen.style.display === 'flex') {
                 finishTest(true);
             }
         }
