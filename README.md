@@ -38,25 +38,25 @@ Each matrix features 8 visible cells positioned across 3 rows and 3 columns; the
 
 Standardized Intelligence Quotient (IQ) estimation conforms to the normal Gaussian distribution with population mean $\mu = 100$ and standard deviation $\sigma = 15$:
 
-$$IQ = 100 + 15 \cdot Z$$
+$$\text{IQ} = 100 + 15 \cdot Z$$
 
 where $Z$ represents the standardized score derived from the empirical calibration of raw correct responses ($R \in [0, 30]$).
 
 ### 3.2 Standard Error of Measurement and 95% Confidence Intervals
 
-Assuming an empirical test-retest reliability coefficient for high $g$-loaded progressive matrices of $r_{xx} \approx 0.88$, the Standard Error of Measurement ($SEM$) is formulated as:
+Assuming an empirical test-retest reliability coefficient for high $g$-loaded progressive matrices of $r_{xx} \approx 0.88$, the Standard Error of Measurement ($\text{SEM}$) is formulated as:
 
-$$SEM = \sigma \cdot \sqrt{1 - r_{xx}} \approx 15 \cdot \sqrt{1 - 0.88} \approx 5.20$$
+$$\text{SEM} = \sigma \cdot \sqrt{1 - r_{xx}} \approx 15 \cdot \sqrt{1 - 0.88} \approx 5.20$$
 
-Each final evaluation is accompanied by a standardized two-tailed 95% confidence interval:
+Each final evaluation is accompanied by a standardized two-tailed 95% confidence interval ($\text{CI}_{0.95}$):
 
-$$CI_{95\%} = IQ \pm 1.96 \cdot SEM \approx [IQ - 5, \; IQ + 5]$$
+$$\text{CI}_{0.95} = \text{IQ} \pm 1.96 \cdot \text{SEM} \approx [\text{IQ} - 5, \; \text{IQ} + 5]$$
 
 ### 3.3 Percentile Rank via Cumulative Distribution Function
 
 The corresponding population percentile rank is calculated using the Standard Normal Cumulative Distribution Function $\Phi(Z)$:
 
-$$\text{Percentile} = \Phi\left(\frac{IQ - 100}{15}\right) \times 100\% = \frac{1}{\sqrt{2\pi}} \int_{-\infty}^{Z} e^{-\frac{t^2}{2}} \, dt \times 100\%$$
+$$\text{Percentile} = \Phi\left(\frac{\text{IQ} - 100}{15}\right) \times 100 = \left[ \frac{1}{\sqrt{2\pi}} \int_{-\infty}^{Z} e^{-\frac{t^2}{2}} \, dt \right] \times 100$$
 
 ---
 
@@ -80,7 +80,7 @@ MatriQ is engineered as a zero-dependency, client-side Single-Page Application (
 To ensure construct validity and testing integrity:
 1. **Testing Environment:** Administration must occur in a quiet, private setting with adequate lighting and zero auditory or digital interruptions.
 2. **Time Constraint:** Total administration duration is strictly capped at **35 minutes** continuous countdown (~70 seconds per item). Pausing the assessment timer is disabled by design.
-3. **Hardware Recommendation:** A full-screen desktop or laptop monitor with a minimum display resolution of $1280 \times 720$ is recommended for optimal perceptual discrimination.
+3. **Hardware Recommendation:** A full-screen desktop or laptop monitor with a minimum display resolution of 1280 × 720 is recommended for optimal perceptual discrimination.
 
 ---
 
