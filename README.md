@@ -88,17 +88,26 @@ To ensure construct validity and testing integrity:
 
 ```
 matriq/
-├── index.html                 # Production-ready compiled standalone application
-├── favicon.svg                # Scalable vector favicon
-├── logo.svg                   # Full horizontal brand vector mark
-├── app_template.html          # Source HTML5/CSS3 application template
-├── build_html_template.py     # Deterministic compiler and asset injector
-├── items_definition.py        # Mathematical and geometric definitions for all 30 items
-├── i18n_data.py               # Multilingual dictionary (EN, IT, DE, ES, PT, FR)
-├── translate_explanations.py  # Analytical item solutions across 6 languages
-├── generate_test.py           # SVG primitives, geometry generators, and SHA-256 answer hashing
-├── validate_all.py            # XML/SVG syntax validation and internal consistency checker
-└── README.md                  # Comprehensive scientific and technical documentation
+├── assets/
+│   ├── favicon.svg            # Scalable vector favicon
+│   └── logo.svg               # Full horizontal brand vector mark
+├── src/
+│   ├── generator/
+│   │   ├── primitives.py      # SVG vector primitives & renderers
+│   │   ├── items.py           # Mathematical definitions of the 30 matrices
+│   │   └── encoder.py         # Obfuscation, permutation shuffling & SHA-256
+│   ├── i18n/
+│   │   ├── ui.py              # Multilingual UI dictionary (EN, IT, DE, ES, PT, FR)
+│   │   └── explanations.py    # Analytical item solutions across 6 languages
+│   └── templates/
+│       └── app_template.html  # Source HTML5/CSS3 application template
+├── scripts/
+│   ├── build.py               # Standalone compilation pipeline
+│   └── validate.py            # XML/SVG syntax validation & consistency suite
+├── .gitignore                 # Git ignore directives
+├── LICENSE                    # MIT Open Source License
+├── README.md                  # Comprehensive scientific and technical documentation
+└── index.html                 # Production-ready standalone web distribution
 ```
 
 ---

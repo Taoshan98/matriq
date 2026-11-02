@@ -1,15 +1,20 @@
-import json
 import math
 import hashlib
 import xml.etree.ElementTree as ET
 
-def validate_svg(svg_str):
+SALT = "ANTIGRAVITY_PSYCHOMETRICS_2026_MATRIX_TEST"
+
+def hash_answer(item_id, correct_idx):
+    raw = f"{SALT}_{item_id}_{correct_idx}"
+    return hashlib.sha256(raw.encode('utf-8')).hexdigest()
+
+def validate_svg_snippet(snippet):
+    full = f"<svg xmlns='http://www.w3.org/2000/svg'>{snippet}</svg>"
     try:
-        ET.fromstring(f"<svg xmlns='http://www.w3.org/2000/svg'>{svg_str}</svg>")
+        ET.fromstring(full)
         return True
     except Exception as e:
-        print("SVG XML Error:", e)
-        print("SVG snippet:", svg_str)
+        print(f"XML Error in snippet: {e}\nSnippet:\n{snippet}")
         return False
 
 # Base SVG Primitives
@@ -48,7 +53,6 @@ def star(cx, cy, r_outer, r_inner, points, rot_deg=0, fill="none", stroke="curre
     return polygon(pts, fill, stroke, stroke_width)
 
 def arrow(x1, y1, x2, y2, stroke="currentColor", stroke_width=2.5, head_len=8):
-    # Line
     dx = x2 - x1
     dy = y2 - y1
     angle = math.atan2(dy, dx)
@@ -60,4 +64,5 @@ def arrow(x1, y1, x2, y2, stroke="currentColor", stroke_width=2.5, head_len=8):
             line(x2, y2, l1_x, l1_y, stroke, stroke_width) +
             line(x2, y2, l2_x, l2_y, stroke, stroke_width))
 
-print("Helper primitives verified.")
+def make_dot(cx, cy, r=4.5, fill="currentColor"):
+    return circle(cx, cy, r, fill=fill, stroke="none")

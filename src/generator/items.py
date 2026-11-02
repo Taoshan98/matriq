@@ -1,11 +1,8 @@
 import math
-from generate_test import (
+from .primitives import (
     circle, rect, line, polygon, regular_polygon, star, arrow,
-    validate_svg_snippet
+    make_dot, validate_svg_snippet
 )
-
-def make_dot(cx, cy, r=4.5, fill="currentColor"):
-    return circle(cx, cy, r, fill=fill, stroke="none")
 
 items = []
 
