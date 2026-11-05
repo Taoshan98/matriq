@@ -1305,42 +1305,63 @@ items.append({
 })
 
 # ==========================================
-# ITEM 28: 2D Vector Addition on a Grid (C3 = Vector A + Vector B)
+# ITEM 28: Multi-Layer Topological Superposition (Latin Polygon & Axial Nodes)
+# Carpenter, Just & Shell (1990) Canonical Culture-Fair Integration
 # ==========================================
-def item_28_vector(vx, vy):
-    # origin at (50, 50). Unit = 24 px
-    res = [
-        rect(20, 20, 60, 60, stroke_width=1.5, stroke="#334155"),
-        line(50, 20, 50, 80, stroke="#475569", stroke_width=1, dashed=True),
-        line(20, 50, 80, 50, stroke="#475569", stroke_width=1, dashed=True),
-        circle(50, 50, 3.5, fill="#94a3b8", stroke="none")
-    ]
-    if vx == 0 and vy == 0:
-        res.append(circle(50, 50, 6, fill="currentColor", stroke="none"))
-    else:
-        tx = 50 + vx * 24
-        ty = 50 + vy * 24
-        res.append(arrow(50, 50, tx, ty, stroke="currentColor", stroke_width=3.5, head_len=8))
-    return "".join(res)
+def item_28_cell(poly, axis, rot_a):
+    res = []
+    # 1. Outer Polygon (r=32)
+    if poly == 'oct':
+        res.append(regular_polygon(50, 50, 32, 8, 22.5, stroke_width=2.2))
+    elif poly == 'hex':
+        res.append(regular_polygon(50, 50, 32, 6, 0, stroke_width=2.2))
+    elif poly == 'diamond':
+        res.append(regular_polygon(50, 50, 32, 4, 45, stroke_width=2.2))
+    
+    # 2. Axis Line(s)
+    if axis == 'h':
+        res.append(line(18, 50, 82, 50, stroke_width=2))
+    elif axis == 'v':
+        res.append(line(50, 18, 50, 82, stroke_width=2))
+    elif axis == 'x':
+        res.append(line(26, 26, 74, 74, stroke_width=2) + line(26, 74, 74, 26, stroke_width=2))
 
-# R1: (1, 0) [Right] + (0, -1) [Up] = (1, -1) [Diag Up-Right]
-# R2: (-1, 0) [Left] + (0, 1) [Down] = (-1, 1) [Diag Down-Left]
-# R3: (-1, 0) [Left] + (1, 1) [Diag Down-Right] = (0, 1) [Pure Downward]
+    # 3. Orbiting Nodes (3 nodes at 120 deg apart, radius 32)
+    for i in range(3):
+        angle_deg = (rot_a + i * 120) % 360
+        rad = math.radians(angle_deg)
+        nx = round(50 + 32 * math.cos(rad), 2)
+        ny = round(50 + 32 * math.sin(rad), 2)
+        
+        # Check intersection with axis:
+        is_on_axis = False
+        if axis == 'h' and (abs(angle_deg - 0) < 15 or abs(angle_deg - 180) < 15 or abs(angle_deg - 360) < 15):
+            is_on_axis = True
+        elif axis == 'v' and (abs(angle_deg - 90) < 15 or abs(angle_deg - 270) < 15):
+            is_on_axis = True
+        elif axis == 'x' and (abs(angle_deg - 45) < 15 or abs(angle_deg - 135) < 15 or abs(angle_deg - 225) < 15 or abs(angle_deg - 315) < 15):
+            is_on_axis = True
+        
+        fill_col = 'currentColor' if is_on_axis else 'var(--bg-card)'
+        res.append(circle(nx, ny, 4.5, fill=fill_col, stroke='currentColor', stroke_width=2))
+
+    return ''.join(res)
+
 grid_28 = [
-    item_28_vector(1, 0), item_28_vector(0, -1), item_28_vector(1, -1),
-    item_28_vector(-1, 0), item_28_vector(0, 1), item_28_vector(-1, 1),
-    item_28_vector(-1, 0), item_28_vector(1, 1)
+    item_28_cell('oct', 'h', 0), item_28_cell('hex', 'v', 45), item_28_cell('diamond', 'x', 90),
+    item_28_cell('hex', 'v', 90), item_28_cell('diamond', 'x', 135), item_28_cell('oct', 'h', 180),
+    item_28_cell('diamond', 'x', 180), item_28_cell('oct', 'h', 225)
 ]
-target_28 = item_28_vector(0, 1) # Down arrow (0, 1)
+target_28 = item_28_cell('hex', 'v', 270)
 opts_28 = [
-    item_28_vector(0, -1), # Up arrow
-    item_28_vector(1, 0),  # Right arrow
-    target_28, # Correct (Index 2) - Pure Downward
-    item_28_vector(-1, 1), # Diag Down-Left
-    item_28_vector(1, 1),  # Diag Down-Right
-    item_28_vector(0, 0),  # Null vector
-    item_28_vector(-1, -1), # Diag Up-Left
-    item_28_vector(1, -1)  # Diag Up-Right
+    item_28_cell('hex', 'h', 270),  # Incomplete Correlate (Axis error)
+    item_28_cell('oct', 'v', 270),  # Incomplete Correlate (Polygon error)
+    target_28,                      # Correct (Index 2)
+    item_28_cell('hex', 'v', 225),  # Incomplete Correlate (Rotation lag by 45°)
+    item_28_cell('diamond', 'v', 270), # Incomplete Correlate (Diamond error)
+    item_28_cell('hex', 'v', 180),  # Wrong Principle (Inverted rotation)
+    item_28_cell('oct', 'h', 225),  # Repetition Error (Clone of R3C2)
+    item_28_cell('oct', 'h', 180)   # Repetition Error (Clone of R2C3)
 ]
 items.append({
     "id": 28,
@@ -1350,81 +1371,65 @@ items.append({
     "target": target_28,
     "options": opts_28,
     "correct_idx": 2,
-    "explanation": "Composizione algebrica di vettori nel piano bidimensionale: il vettore nella colonna 3 è la risultante vettoriale esatta (regola del parallelogramma) dei vettori delle colonne 1 e 2: V3 = V1 + V2. In riga 3: Vettore (-1, 0) verso Sinistra + Vettore (1, 1) Diagonale Basso-Destra = la componente orizzontale (-1 + 1 = 0) si annulla, mentre rimane la componente verticale (0 + 1 = 1) verso il Basso. La risultante è una freccia diretta verso il basso."
+    "explanation": "Integrazione multi-variabile a 3 vincoli: 1) Poligono esterno (Quadrato Latino): in riga 3 manca l'Esagono; 2) Asse interno (Quadrato Latino): in riga 3 manca l'Asse Verticale; 3) I nodi ruotano di +45° ad ogni casella (in riga 3: 180°→225°→270°), e il nodo che interseca l'asse verticale diventa pieno. La figura corretta è l'Esagono con asse verticale e nodo inferiore pieno."
 })
 
 # ==========================================
-# ITEM 29: 1D Cellular Automaton Parity (Wolfram Rule 90 / Neighbor XOR)
+# ITEM 29: Harmonic Ring Sector Resonator (Tri-Variate Polar Transformation)
+# Carpenter, Just & Shell (1990) Canonical Culture-Fair Integration
 # ==========================================
-def item_29_strip(bits):
-    # 5 blocks along x: x=20..80, w=12, gap=2.4
+def item_29_cell(rot_out, rot_in, core, n_markers):
     res = []
-    for i, b in enumerate(bits):
-        bx = 21 + i * 12
-        fill = "currentColor" if b else "none"
-        res.append(rect(bx, 40, 10, 20, fill=fill, stroke="currentColor", stroke_width=2))
-    return "".join(res)
+    # 1. Outer semicircular arc (r=32, span 200 deg)
+    s_a = math.radians(rot_out + 40)
+    e_a = math.radians(rot_out + 320)
+    sx = round(50 + 32 * math.cos(s_a), 2)
+    sy = round(50 + 32 * math.sin(s_a), 2)
+    ex = round(50 + 32 * math.cos(e_a), 2)
+    ey = round(50 + 32 * math.sin(e_a), 2)
+    res.append(f'<path d="M {sx},{sy} A 32,32 0 1,1 {ex},{ey}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />')
 
-def rule_90_step(b):
-    # b is length 5. Next state at index i is b[i-1] XOR b[i+1] with zero boundary
-    n = len(b)
-    res = []
-    for i in range(n):
-        left = b[i-1] if i > 0 else 0
-        right = b[i+1] if i < n-1 else 0
-        res.append(left ^ right)
-    return res
+    # 2. Inner quadrant arc (r=20, span 270 deg, opening 90 deg)
+    s_in = math.radians(rot_in + 45)
+    e_in = math.radians(rot_in + 315)
+    sx_in = round(50 + 20 * math.cos(s_in), 2)
+    sy_in = round(50 + 20 * math.sin(s_in), 2)
+    ex_in = round(50 + 20 * math.cos(e_in), 2)
+    ey_in = round(50 + 20 * math.sin(e_in), 2)
+    res.append(f'<path d="M {sx_in},{sy_in} A 20,20 0 1,1 {ex_in},{ey_in}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />')
 
-# Row 1:
-b1_0 = [0, 1, 0, 1, 0]
-b1_1 = rule_90_step(b1_0) # [1, 0, 0, 0, 1]
-b1_2 = rule_90_step(b1_1) # [0, 1, 0, 1, 0]
+    # 3. Central Core Shape (r=7)
+    if core == 'circle':
+        res.append(circle(50, 50, 6, fill='currentColor', stroke='none'))
+    elif core == 'square':
+        res.append(rect(44, 44, 12, 12, fill='currentColor', stroke='none'))
+    elif core == 'triangle':
+        res.append(regular_polygon(50, 50, 8, 3, -90, fill='currentColor', stroke='none'))
 
-# Row 2:
-b2_0 = [0, 0, 1, 0, 0]
-b2_1 = rule_90_step(b2_0) # [0, 1, 0, 1, 0]
-b2_2 = rule_90_step(b2_1) # [1, 0, 0, 0, 1]
+    # 4. Perimeter Diamond Markers (r=38)
+    for i in range(n_markers):
+        ang = math.radians(rot_out + 180 + i * (360.0 / max(n_markers, 1)))
+        mx = round(50 + 38 * math.cos(ang), 2)
+        my = round(50 + 38 * math.sin(ang), 2)
+        res.append(regular_polygon(mx, my, 3.5, 4, 45, fill='currentColor', stroke='none'))
 
-# Row 3:
-b3_0 = [1, 0, 1, 0, 1]
-b3_1 = rule_90_step(b3_0) # [0, 0, 0, 0, 0] (since 0^1=1? wait: left^right:
-# for [1,0,1,0,1]:
-# i=0: 0^0 = 0
-# i=1: 1^1 = 0
-# i=2: 0^0 = 0
-# i=3: 1^1 = 0
-# i=4: 0^0 = 0
-# Next from [0,0,0,0,0] is all 0s! Let's choose a richer pattern:
-b3_0 = [1, 1, 0, 0, 1]
-# i=0: 0^1 = 1
-# i=1: 1^0 = 1
-# i=2: 1^0 = 1
-# i=3: 0^1 = 1
-# i=4: 0^0 = 0
-b3_1 = rule_90_step(b3_0) # [1, 1, 1, 1, 0]
-# Next step from [1, 1, 1, 1, 0]:
-# i=0: 0^1 = 1
-# i=1: 1^1 = 0
-# i=2: 1^1 = 0
-# i=3: 1^0 = 1
-# i=4: 1^0 = 1
-b3_2 = rule_90_step(b3_1) # [1, 0, 0, 1, 1]
+    return ''.join(res)
 
 grid_29 = [
-    item_29_strip(b1_0), item_29_strip(b1_1), item_29_strip(b1_2),
-    item_29_strip(b2_0), item_29_strip(b2_1), item_29_strip(b2_2),
-    item_29_strip(b3_0), item_29_strip(b3_1)
+    item_29_cell(0, 0, 'circle', 1), item_29_cell(90, 270, 'square', 1), item_29_cell(180, 180, 'triangle', 1),
+    item_29_cell(90, 270, 'square', 2), item_29_cell(180, 180, 'triangle', 2), item_29_cell(270, 90, 'circle', 2),
+    item_29_cell(180, 180, 'triangle', 3), item_29_cell(270, 90, 'circle', 3)
 ]
-target_29 = item_29_strip(b3_2) # [1, 0, 0, 1, 1]
+target_29 = item_29_cell(0, 0, 'square', 3)
 opts_29 = [
-    item_29_strip([1, 1, 1, 1, 0]), # Previous state
-    item_29_strip([0, 1, 1, 0, 0]),
-    target_29, # Correct (Index 2) - [1, 0, 0, 1, 1]
-    item_29_strip([1, 1, 0, 0, 1]), # Initial state
-    item_29_strip([0, 0, 0, 0, 0]), # All empty
-    item_29_strip([1, 1, 1, 1, 1]), # All full
-    item_29_strip([0, 1, 0, 1, 0]),
-    item_29_strip([1, 0, 1, 0, 1])
+    item_29_cell(0, 180, 'square', 3),   # Incomplete Correlate (Inner arc rotation error)
+    item_29_cell(0, 0, 'square', 2),     # Incomplete Correlate (Marker count error: 2 instead of 3)
+    target_29,                           # Correct (Index 2)
+    item_29_cell(0, 0, 'circle', 3),     # Incomplete Correlate (Core shape error: Circle)
+    item_29_cell(0, 0, 'triangle', 3),   # Incomplete Correlate (Core shape error: Triangle)
+    item_29_cell(270, 0, 'square', 3),   # Wrong Principle (Outer ring rotated CCW)
+    item_29_cell(270, 90, 'circle', 3),  # Repetition Error (Clone of R3C2)
+    item_29_cell(270, 90, 'circle', 2)   # Repetition Error (Clone of R2C3)
 ]
 items.append({
     "id": 29,
@@ -1434,7 +1439,7 @@ items.append({
     "target": target_29,
     "options": opts_29,
     "correct_idx": 2,
-    "explanation": "Regola di evoluzione deterministica locale (Automa Cellulare 1D / Regola di Parità): ciascuna casella al passo successivo è attiva (piena) se e solo se esattamente UNO dei suoi due vicini immediati (sinistra e destra) era attivo al passo precedente (XOR dei vicini). Applicando la trasformazione alla seconda casella [1, 1, 1, 1, 0], il nuovo stato calcolato è [1, 0, 0, 1, 1]."
+    "explanation": "Trasformazione polare a tre regole simultanee: 1) L'arco esterno semicircolare ruota di +90° in senso orario (in riga 3: 180°→270°→0°); 2) L'arco interno a quadrante ruota di 90° in senso antiorario (in riga 3: 180°→90°→0°); 3) Il nucleo centrale segue un Quadrato Latino (in riga 3 manca il Quadrato); 4) I marcatori a rombo aumentano di 1 per riga (in riga 3 sono esattamente 3). La figura corretta ha aperture a 0°, nucleo quadrato e 3 marcatori."
 })
 
 # ==========================================
@@ -1481,10 +1486,7 @@ def item_30_rings(rot_out, rot_mid, rot_in, n_out_dots, n_in_dots):
 #    Row 3: Outer dots = 4, Inner dots = 2.
 # R1: out_rot: 0, 90, 180 | mid_rot: 0, 270, 180 | in_rot: 0, 180, 0 | dots: (2,4), (3,3), (4,2)
 # R2: out_rot: 90, 180, 270 | mid_rot: 270, 180, 90 | in_rot: 180, 0, 180 | dots: (3,3), (4,2), (5,1)
-# R3: out_rot: 180, 270, 0 | mid_rot: 180, 90, 0 | in_rot: 0, 180, 0 | dots: (4,2), (5,1), [(6,0) or (3,3)? Wait, let's look at progression:
-# In R1: (2,4) -> (3,3) -> (4,2) [Outer dots: 2 -> 3 -> 4]
-# In R2: (3,3) -> (4,2) -> (5,1) [Outer dots: 3 -> 4 -> 5]
-# In R3: (4,2) -> (5,1) -> [(6,0)]! Total dots = 6, outer = 6, inner = 0!
+# R3: out_rot: 180, 270, 0 | mid_rot: 180, 90, 0 | in_rot: 0, 180, 0 | dots: (4,2), (5,1), [(6,0)]! Total dots = 6, outer = 6, inner = 0!
 grid_30 = [
     item_30_rings(0, 0, 0, 2, 4), item_30_rings(90, 270, 180, 3, 3), item_30_rings(180, 180, 0, 4, 2),
     item_30_rings(90, 270, 180, 3, 3), item_30_rings(180, 180, 0, 4, 2), item_30_rings(270, 90, 180, 5, 1),
@@ -1492,14 +1494,14 @@ grid_30 = [
 ]
 target_30 = item_30_rings(0, 0, 0, 6, 0) # Outer=0°, Mid=0°, Inner=0°, 6 outer dots, 0 inner dots
 opts_30 = [
-    item_30_rings(0, 180, 0, 6, 0), # Wrong mid ring rot
-    item_30_rings(0, 0, 180, 5, 1), # Wrong dot count
-    target_30, # Correct (Index 2)
-    item_30_rings(90, 0, 0, 6, 0),  # Wrong outer ring rot
-    item_30_rings(0, 0, 0, 5, 1),   # 5 dots outer, 1 inner (failed transfer)
-    item_30_rings(180, 0, 0, 6, 0),
-    item_30_rings(0, 0, 0, 4, 2),
-    circle(50, 50, 36) + circle(50, 50, 26) + circle(50, 50, 16)
+    item_30_rings(0, 180, 0, 6, 0),    # Incomplete Correlate (Wrong mid ring rot)
+    item_30_rings(0, 0, 180, 5, 1),    # Incomplete Correlate (Inner rot off + wrong dots)
+    target_30,                          # Correct (Index 2)
+    item_30_rings(90, 0, 0, 6, 0),     # Incomplete Correlate (Wrong outer ring rot)
+    item_30_rings(0, 0, 0, 5, 1),      # Incomplete Correlate (5 dots outer, 1 inner - transfer incomplete)
+    item_30_rings(0, 270, 0, 6, 0),    # Incomplete Correlate (Middle ring lagging)
+    item_30_rings(180, 180, 0, 4, 2),  # Repetition Error (Clone of center cell R2C2)
+    item_30_rings(270, 90, 180, 5, 1)  # Repetition Error (Clone of R3C2)
 ]
 items.append({
     "id": 30,

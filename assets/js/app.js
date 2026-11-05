@@ -1,12 +1,16 @@
 /**
  * MatriQ Application Controller
  * Handles test progression, timers, interactive visual rendering,
- * review navigation, and keyboard shortcuts.
+ * question scrubber bar, review navigation, and keyboard/touch shortcuts.
  */
 
 // Application Constants & Timing
 const TOTAL_ITEMS = (typeof ITEMS !== 'undefined') ? ITEMS.length : 30;
-const TIME_LIMIT_SECONDS = 35 * 60; // 35 minutes
+const TIME_LIMIT_SECONDS = 30 * 60; // 30 minutes (60 seconds per item - Standardized Protocol)
+
+// Vector Theme Icons (Zero Emojis)
+const SVG_MOON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+const SVG_SUN = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
 
 // State
 let currentLang = 'it';
@@ -27,7 +31,11 @@ const testScreen = document.getElementById('test-screen');
 const resultsScreen = document.getElementById('results-screen');
 const headerMeta = document.getElementById('header-meta');
 const timerDisplay = document.getElementById('timer-display');
+const timerText = document.getElementById('timer-text');
 const progressIndicator = document.getElementById('progress-indicator');
+const testProgressTrack = document.getElementById('test-progress-track');
+const testProgressFill = document.getElementById('test-progress-fill');
+const questionScrubber = document.getElementById('question-scrubber');
 const qCategory = document.getElementById('q-category');
 const flagBtn = document.getElementById('flag-btn');
 const txtFlagLabel = document.getElementById('txt-flag-label');
@@ -44,8 +52,11 @@ const srAnnouncer = document.getElementById('sr-announcer');
 // Modals
 const mapModal = document.getElementById('map-modal');
 const openMapBtn = document.getElementById('open-map-btn');
+const mobileMapBtn = document.getElementById('mobile-map-btn');
+const mobileMapLabel = document.getElementById('mobile-map-label');
 const closeMapBtn = document.getElementById('close-map-btn');
 const confirmMapBtn = document.getElementById('confirm-map-btn');
+const modalSubmitBtn = document.getElementById('modal-submit-btn');
 const questionMapGrid = document.getElementById('question-map-grid');
 
 const confirmModal = document.getElementById('confirm-modal');
@@ -81,7 +92,7 @@ function applyTheme(theme) {
     currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     if (themeIcon) {
-        themeIcon.textContent = (theme === 'dark') ? '🌙' : '☀️';
+        themeIcon.innerHTML = (theme === 'dark') ? SVG_MOON : SVG_SUN;
     }
     localStorage.setItem('matrix_iq_theme', theme);
 }
@@ -118,12 +129,13 @@ function applyLanguage(lang) {
     setHtml('txt-rule-3-desc', t.rule_3_desc);
     setTxt('txt-rule-4-title', t.rule_4_title);
     setHtml('txt-rule-4-desc', t.rule_4_desc);
-    setTxt('start-btn', t.start_btn);
+    setTxt('txt-start-btn', t.start_btn);
 
     setTxt('txt-missing-figure-title', t.missing_figure_title);
-    if (prevBtn) prevBtn.textContent = t.prev_btn;
-    if (submitBtn) submitBtn.textContent = t.submit_btn;
-    if (openMapBtn) openMapBtn.textContent = t.map_btn;
+    setTxt('txt-prev-btn', t.prev_btn);
+    setTxt('txt-submit-btn', t.submit_btn);
+    setTxt('txt-modal-submit-btn', t.submit_btn);
+    setTxt('txt-open-map-btn', t.map_btn);
 
     setTxt('map-modal-title', t.map_title);
     setTxt('txt-map-answered', t.map_answered);
@@ -199,6 +211,7 @@ if (startBtn) {
         if (introScreen) introScreen.style.display = 'none';
         if (testScreen) testScreen.style.display = 'flex';
         if (headerMeta) headerMeta.style.display = 'flex';
+        if (testProgressTrack) testProgressTrack.style.display = 'block';
         testStartTime = Date.now();
         renderQuestion(currentIndex);
         startTimer();
@@ -207,15 +220,19 @@ if (startBtn) {
 }
 
 function startTimer() {
+    clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         timeRemaining--;
         const mins = Math.floor(timeRemaining / 60);
         const secs = timeRemaining % 60;
-        if (timerDisplay) {
-            timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            if (timeRemaining <= 300) {
-                timerDisplay.classList.add('warning');
-            }
+        const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        if (timerText) {
+            timerText.textContent = formatted;
+        } else if (timerDisplay) {
+            timerDisplay.textContent = formatted;
+        }
+        if (timerDisplay && timeRemaining <= 300) {
+            timerDisplay.classList.add('warning');
         }
 
         if (timeRemaining <= 0) {
@@ -225,17 +242,86 @@ function startTimer() {
     }, 1000);
 }
 
+// Render Interactive Horizontal Scrubber Strip
+function renderScrubber(activeIdx) {
+    if (!questionScrubber) return;
+
+    // Build pills once if empty, then update classes for smooth performance
+    if (questionScrubber.children.length !== TOTAL_ITEMS) {
+        questionScrubber.innerHTML = '';
+        for (let i = 0; i < TOTAL_ITEMS; i++) {
+            const pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = 'scrubber-pill';
+            pill.setAttribute('role', 'tab');
+            pill.textContent = i + 1;
+            pill.addEventListener('click', () => renderQuestion(i));
+            questionScrubber.appendChild(pill);
+        }
+    }
+
+    const pills = questionScrubber.children;
+    for (let i = 0; i < TOTAL_ITEMS; i++) {
+        const pill = pills[i];
+        if (!pill) continue;
+        pill.className = 'scrubber-pill';
+        if (userAnswers[i] !== null) pill.classList.add('answered');
+        if (flaggedItems.has(i)) pill.classList.add('flagged');
+        if (i === activeIdx) {
+            pill.classList.add('active');
+            pill.setAttribute('aria-selected', 'true');
+        } else {
+            pill.setAttribute('aria-selected', 'false');
+        }
+    }
+
+    // Center active pill inside horizontal scroll container without scrolling page vertically
+    const activePill = pills[activeIdx];
+    if (activePill && questionScrubber.scrollWidth > questionScrubber.clientWidth) {
+        const targetScroll = activePill.offsetLeft - (questionScrubber.clientWidth / 2) + (activePill.offsetWidth / 2);
+        questionScrubber.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
+    }
+}
+
 function renderQuestion(index) {
     currentIndex = index;
     if (typeof ITEMS === 'undefined' || !ITEMS[index]) return;
     const item = ITEMS[index];
     const t = (typeof I18N !== 'undefined' && I18N[currentLang]) ? I18N[currentLang] : {};
 
+    // Top Header Progress Pill
     if (progressIndicator) {
-        progressIndicator.textContent = (t.q_progress || "Domanda {current} di {total}")
+        const fullText = (t.q_progress || "Domanda {current} di {total}")
             .replace('{current}', index + 1)
             .replace('{total}', TOTAL_ITEMS);
+        const shortText = `${String(index + 1).padStart(2, '0')} / ${TOTAL_ITEMS}`;
+        const progFull = progressIndicator.querySelector('.prog-full');
+        const progShort = progressIndicator.querySelector('.prog-short');
+        if (progFull && progShort) {
+            progFull.textContent = fullText;
+            progShort.textContent = shortText;
+        } else {
+            progressIndicator.textContent = fullText;
+        }
     }
+
+    // Linear Progress Bar Fill
+    if (testProgressFill) {
+        const pct = ((index + 1) / TOTAL_ITEMS) * 100;
+        testProgressFill.style.width = `${pct.toFixed(2)}%`;
+    }
+
+    // Mobile Bottom Bar Map Counter
+    if (mobileMapLabel) {
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+        mobileMapLabel.textContent = `${index + 1} / ${TOTAL_ITEMS}`;
+        if (mobileMapBtn) {
+            mobileMapBtn.setAttribute('title', `${answeredCount}/${TOTAL_ITEMS}`);
+        }
+    }
+
+    // Scrubber Bar
+    renderScrubber(index);
 
     // Category
     const translatedCat = (t.categories && t.categories[item.category_key]) || item.category_key;
@@ -246,7 +332,7 @@ function renderQuestion(index) {
         if (flaggedItems.has(index)) {
             flagBtn.classList.add('active');
             flagBtn.setAttribute('aria-pressed', 'true');
-            if (txtFlagLabel) txtFlagLabel.textContent = t.flagged_btn || "Segnata per revisione";
+            if (txtFlagLabel) txtFlagLabel.textContent = t.flagged_btn || "Segnata";
         } else {
             flagBtn.classList.remove('active');
             flagBtn.setAttribute('aria-pressed', 'false');
@@ -270,6 +356,7 @@ function renderQuestion(index) {
         targetCell.className = 'matrix-cell target';
         targetCell.setAttribute('aria-label', 'Missing target cell');
         if (userAnswers[index] !== null) {
+            targetCell.classList.add('filled');
             const chosenSvg = item.options[userAnswers[index]];
             targetCell.innerHTML = `<svg viewBox="0 0 100 100">${chosenSvg}</svg>`;
         } else {
@@ -281,6 +368,7 @@ function renderQuestion(index) {
     // Render Candidate Options
     if (optionsGrid) {
         optionsGrid.innerHTML = '';
+        optionsGrid.setAttribute('data-count', item.options.length);
         item.options.forEach((optSvg, optIdx) => {
             const optCard = document.createElement('div');
             optCard.className = 'option-card';
@@ -316,10 +404,16 @@ function renderQuestion(index) {
     // Navigation buttons state
     if (prevBtn) {
         prevBtn.disabled = (index === 0);
-        prevBtn.style.opacity = (index === 0) ? '0.4' : '1';
+        prevBtn.style.opacity = (index === 0) ? '0.38' : '1';
     }
     if (nextBtn) {
-        nextBtn.textContent = (index === TOTAL_ITEMS - 1) ? (t.summary_btn || "Riepilogo") : (t.next_btn || "Successiva →");
+        const isLast = (index === TOTAL_ITEMS - 1);
+        setTxt('txt-next-btn', isLast ? (t.submit_btn || "Consegna Test") : (t.next_btn || "Successiva"));
+        if (userAnswers[index] !== null || isLast) {
+            nextBtn.classList.add('has-answer');
+        } else {
+            nextBtn.classList.remove('has-answer');
+        }
     }
 }
 
@@ -352,7 +446,7 @@ if (nextBtn) {
         if (currentIndex < TOTAL_ITEMS - 1) {
             renderQuestion(currentIndex + 1);
         } else {
-            openQuestionMap();
+            promptSubmitConfirmation();
         }
     });
 }
@@ -365,6 +459,7 @@ function openQuestionMap() {
     questionMapGrid.innerHTML = '';
     for (let i = 0; i < TOTAL_ITEMS; i++) {
         const mapBtn = document.createElement('button');
+        mapBtn.type = 'button';
         mapBtn.className = 'map-item';
         mapBtn.textContent = i + 1;
         mapBtn.setAttribute('aria-label', `Navigate to item ${i+1}`);
@@ -384,28 +479,75 @@ function openQuestionMap() {
 }
 
 if (openMapBtn) openMapBtn.addEventListener('click', openQuestionMap);
+if (mobileMapBtn) mobileMapBtn.addEventListener('click', openQuestionMap);
 if (closeMapBtn) closeMapBtn.addEventListener('click', () => { if (mapModal) mapModal.style.display = 'none'; });
 if (confirmMapBtn) confirmMapBtn.addEventListener('click', () => { if (mapModal) mapModal.style.display = 'none'; });
+
+if (modalSubmitBtn) {
+    modalSubmitBtn.addEventListener('click', () => {
+        if (mapModal) mapModal.style.display = 'none';
+        promptSubmitConfirmation();
+    });
+}
+
+// ----------------------------------------------------
+// Touch Gesture Navigation (Horizontal Swipe for Mobile)
+// ----------------------------------------------------
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartedInScrubber = false;
+const testScreenEl = document.getElementById('test-screen');
+if (testScreenEl) {
+    testScreenEl.addEventListener('touchstart', (e) => {
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        touchStartedInScrubber = Boolean(e.target && e.target.closest('.scrubber-bar'));
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    testScreenEl.addEventListener('touchend', (e) => {
+        if (touchStartedInScrubber) return;
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        const deltaX = e.changedTouches[0].screenX - touchStartX;
+        const deltaY = e.changedTouches[0].screenY - touchStartY;
+        // Dominant horizontal swipe (> 50px threshold and dx > 1.6 * dy)
+        if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.6) {
+            if (deltaX < 0) {
+                if (currentIndex < TOTAL_ITEMS - 1) {
+                    renderQuestion(currentIndex + 1);
+                } else if (currentIndex === TOTAL_ITEMS - 1) {
+                    openQuestionMap();
+                }
+            } else {
+                if (currentIndex > 0) {
+                    renderQuestion(currentIndex - 1);
+                }
+            }
+        }
+    }, { passive: true });
+}
 
 // ----------------------------------------------------
 // Submission & Scoring Evaluation
 // ----------------------------------------------------
+function promptSubmitConfirmation() {
+    const t = (typeof I18N !== 'undefined' && I18N[currentLang]) ? I18N[currentLang] : {};
+    const unanswered = userAnswers.filter(a => a === null).length;
+    const flagged = flaggedItems.size;
+
+    let msg = t.confirm_default || "Confermare la consegna?";
+    if (unanswered > 0) {
+        msg = (t.confirm_unanswered || "Attenzione: {count} quesiti senza risposta.").replace('{count}', unanswered);
+    } else if (flagged > 0) {
+        msg = (t.confirm_flagged || "Hai {count} quesiti contrassegnati.").replace('{count}', flagged);
+    }
+
+    if (confirmModalText) confirmModalText.innerHTML = msg;
+    if (confirmModal) confirmModal.style.display = 'flex';
+}
+
 if (submitBtn) {
-    submitBtn.addEventListener('click', () => {
-        const t = (typeof I18N !== 'undefined' && I18N[currentLang]) ? I18N[currentLang] : {};
-        const unanswered = userAnswers.filter(a => a === null).length;
-        const flagged = flaggedItems.size;
-
-        let msg = t.confirm_default || "Confermare la consegna?";
-        if (unanswered > 0) {
-            msg = (t.confirm_unanswered || "Attenzione: {count} quesiti senza risposta.").replace('{count}', unanswered);
-        } else if (flagged > 0) {
-            msg = (t.confirm_flagged || "Hai {count} quesiti contrassegnati.").replace('{count}', flagged);
-        }
-
-        if (confirmModalText) confirmModalText.innerHTML = msg;
-        if (confirmModal) confirmModal.style.display = 'flex';
-    });
+    submitBtn.addEventListener('click', promptSubmitConfirmation);
 }
 
 if (cancelSubmitBtn) cancelSubmitBtn.addEventListener('click', () => { if (confirmModal) confirmModal.style.display = 'none'; });
@@ -487,6 +629,7 @@ function finishTest(isRecompute = false) {
 
     if (testScreen) testScreen.style.display = 'none';
     if (headerMeta) headerMeta.style.display = 'none';
+    if (testProgressTrack) testProgressTrack.style.display = 'none';
     if (resultsScreen) resultsScreen.style.display = 'flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -519,8 +662,10 @@ function resetTest() {
     testSubmitted = false;
     clearInterval(timerInterval);
     timeRemaining = TIME_LIMIT_SECONDS;
+    if (timerText) {
+        timerText.textContent = "30:00";
+    }
     if (timerDisplay) {
-        timerDisplay.textContent = "35:00";
         timerDisplay.classList.remove('warning');
     }
     currentIndex = 0;
@@ -531,6 +676,7 @@ function resetTest() {
     if (resultsScreen) resultsScreen.style.display = 'none';
     if (testScreen) testScreen.style.display = 'none';
     if (headerMeta) headerMeta.style.display = 'none';
+    if (testProgressTrack) testProgressTrack.style.display = 'none';
     if (introScreen) introScreen.style.display = 'block';
 
     if (reviewContainer) reviewContainer.style.display = 'none';
@@ -560,15 +706,14 @@ function renderReviewNavigator() {
         const isCorrect = (userAnswers[i] === sol.correct_idx);
 
         const pill = document.createElement('button');
-        pill.className = 'btn-secondary';
-        pill.style.padding = '0.3rem 0.55rem';
-        pill.style.fontSize = '0.78rem';
-        pill.style.fontWeight = '700';
-        pill.style.borderColor = isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)';
-        pill.style.color = isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)';
-        pill.textContent = `${i + 1} ${isCorrect ? '✓' : '✗'}`;
+        pill.type = 'button';
+        pill.className = `review-pill-btn ${isCorrect ? 'is-correct' : 'is-wrong'} ${i === currentReviewIndex ? 'is-active' : ''}`;
+        pill.textContent = `${i + 1}`;
 
-        pill.addEventListener('click', () => renderReviewItem(i));
+        pill.addEventListener('click', () => {
+            renderReviewItem(i);
+            renderReviewNavigator();
+        });
         reviewPills.appendChild(pill);
     }
 }
@@ -617,18 +762,22 @@ function renderReviewItem(idx) {
         </div>
     `;
 
+    const qHeading = (t.q_progress || "Domanda {current} di {total}")
+        .replace('{current}', idx + 1)
+        .replace('{total}', TOTAL_ITEMS);
+
     reviewContent.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-            <h4 style="font-size: 1rem; font-weight: 700;">Domanda ${idx + 1} di ${TOTAL_ITEMS} • ${translatedCat}</h4>
-            <span style="font-weight: 700; font-size: 0.9rem; color: ${isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
-                ${isCorrect ? (t.review_correct_label || '✓ Risposta Corretta') : (t.review_wrong_label || '✗ Risposta Errata')}
+            <h4 style="font-size: 1rem; font-weight: 700;">${qHeading} &bull; ${translatedCat}</h4>
+            <span style="font-weight: 700; font-size: 0.88rem; color: ${isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+                ${isCorrect ? (t.review_correct_label || 'Risposta Corretta') : (t.review_wrong_label || 'Risposta Errata')}
             </span>
         </div>
         <div class="review-split">
-            <div class="matrix-container" style="padding: 0.75rem; max-width: 320px; margin: auto;">
+            <div class="matrix-container" style="padding: 0.75rem; max-width: 300px; margin: auto;">
                 <div class="matrix-grid" style="gap: 6px;">${gridCellsHtml}</div>
             </div>
-            <div class="options-grid" style="max-width: 440px; margin: auto;">${optionsHtml}</div>
+            <div class="options-grid" data-count="${item.options.length}" style="max-width: 440px; margin: auto;">${optionsHtml}</div>
         </div>
         <div class="review-explanation">
             <strong>${t.explanation_title || 'Spiegazione della Regola Logica:'}</strong><br>
@@ -669,4 +818,10 @@ window.addEventListener('keydown', (e) => {
 });
 
 // App Startup
-window.addEventListener('DOMContentLoaded', initThemeAndLang);
+window.addEventListener('DOMContentLoaded', () => {
+    initThemeAndLang();
+    if (new URLSearchParams(window.location.search).get('start') === '1') {
+        const startBtnEl = document.getElementById('start-btn');
+        if (startBtnEl) startBtnEl.click();
+    }
+});
